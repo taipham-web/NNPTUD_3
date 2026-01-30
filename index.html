@@ -10,93 +10,39 @@
             margin: 20px;
         }
 
-        /* Khu vực điều khiển (Search, Sort, Pagination Size) */
-        .controls {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+        /* --- GIỮ NGUYÊN CSS CŨ --- */
+        .controls { display: flex; gap: 20px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        input[type="text"], select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 8px 12px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px; }
+        button:hover { background-color: #0056b3; }
+        
+        table { width: 100%; border-collapse: collapse; box-shadow: 0 0 10px rgba(0,0,0,0.1); table-layout: fixed; /* Cố định layout để xử lý text dài */ }
+        th, td { padding: 12px; text-align: left; border: 1px solid #ddd; word-wrap: break-word; }
+        th { background-color: #333; color: white; cursor: pointer; user-select: none; }
+        
+        /* Dòng lẻ/chẵn */
+        tbody tr:nth-child(odd) { background-color: #ffffff; color: #000000; }
+        tbody tr:nth-child(even) { background-color: #000000; color: #ffffff; }
 
-        input[type="text"], select {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+        .product-img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 5px; border: 1px solid #ccc; }
+        
+        .pagination { margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
+        .pagination button.active { background-color: #0056b3; font-weight: bold; }
+        .sort-icon::after { content: ' ↕'; font-size: 0.8em; }
 
-        button {
-            padding: 8px 12px;
-            cursor: pointer;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
+        /* --- CSS MỚI CHO CỘT MÔ TẢ --- */
+        .desc-col {
+            width: 40%; /* Dành 40% chiều rộng bảng cho mô tả */
+            font-size: 0.9em;
+            color: inherit;
         }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        /* CSS cho Bảng */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #333;
-            color: white;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        /* Yêu cầu: 1 dòng đen, 1 dòng trắng */
-        /* Dòng lẻ: Màu trắng, chữ đen */
-        tbody tr:nth-child(odd) {
-            background-color: #ffffff;
-            color: #000000;
-        }
-
-        /* Dòng chẵn: Màu đen, chữ trắng */
-        tbody tr:nth-child(even) {
-            background-color: #000000;
-            color: #ffffff;
-        }
-
-        /* Style cho hình ảnh */
-        .product-img {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-right: 5px;
-            border: 1px solid #ccc;
-        }
-
-        /* Phân trang */
-        .pagination {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .pagination button.active {
-            background-color: #0056b3;
-            font-weight: bold;
-        }
-
-        .sort-icon::after {
-            content: ' ↕';
-            font-size: 0.8em;
+        /* Giới hạn số dòng mô tả (tùy chọn) */
+        .truncate-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Hiển thị tối đa 2 dòng */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
 </head>
@@ -106,7 +52,6 @@
 
     <div class="controls">
         <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên sản phẩm..." />
-
         <label>Hiển thị: 
             <select id="pageSizeSelect">
                 <option value="5">5</option>
@@ -114,7 +59,6 @@
                 <option value="20">20</option>
             </select>
         </label>
-        
         <div style="margin-left: auto;">
             <button onclick="handleSort('price')">Sắp xếp Giá</button>
             <button onclick="handleSort('title')">Sắp xếp Tên</button>
@@ -124,18 +68,18 @@
     <table id="productTable">
         <thead>
             <tr>
-                <th>ID</th>
+                <th style="width: 50px;">ID</th>
                 <th onclick="handleSort('title')" class="sort-icon">Tên sản phẩm</th>
-                <th onclick="handleSort('price')" class="sort-icon">Giá ($)</th>
-                <th>Hình ảnh</th>
+                <th class="desc-col">Mô tả</th> 
+                <th onclick="handleSort('price')" class="sort-icon" style="width: 100px;">Giá ($)</th>
+                <th style="width: 150px;">Hình ảnh</th>
             </tr>
         </thead>
         <tbody id="tableBody">
             </tbody>
     </table>
 
-    <div class="pagination" id="pagination">
-        </div>
+    <div class="pagination" id="pagination"></div>
 
     <script src="script.js"></script>
 </body>

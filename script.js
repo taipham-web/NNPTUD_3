@@ -1,24 +1,53 @@
-// Biến toàn cục để lưu trạng thái
-let originalData = []; // Dữ liệu gốc từ API
-let filteredData = []; // Dữ liệu sau khi tìm kiếm/sắp xếp
+// Biến toàn cục
+let originalData = [];
+let filteredData = [];
 let currentPage = 1;
-let itemsPerPage = 5;
-let sortDirection = {
-    price: 'asc',
-    title: 'asc'
-};
+let itemsPerPage = 5; // Mặc định hiển thị 5 dòng (khớp với screenshot)
+let sortDirection = { price: 'asc', title: 'asc' };
 
-// 1. Hàm getall: Lấy dữ liệu từ API
+// --- HÀM MỚI: XỬ LÝ LỖI URL ẢNH ---
+function getCleanImageUrl(imgUrl) {
+    if (!imgUrl) return 'https://placehold.co/50?text=No+Image';
+    
+    let cleanUrl = imgUrl;
+
+    // Trường hợp 1: API trả về chuỗi JSON stringified (ví dụ: "[\"https://...\"]")
+    if (typeof cleanUrl === 'string' && cleanUrl.startsWith('["')) {
+        try {
+            // Cố gắng parse chuỗi JSON để lấy mảng thật
+            const parsed = JSON.parse(cleanUrl);
+            // Nếu parse thành công và ra mảng, lấy phần tử đầu tiên
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                cleanUrl = parsed[0];
+            }
+        } catch (e) {
+            // Nếu lỗi parse, giữ nguyên để regex xử lý
+        }
+    }
+
+    // Trường hợp 2: Vẫn còn dính ký tự thừa [] hoặc "
+    if (typeof cleanUrl === 'string') {
+        cleanUrl = cleanUrl.replace(/[\[\]"]/g, '');
+    }
+
+    // Kiểm tra nếu URL không hợp lệ (không bắt đầu bằng http)
+    if (!cleanUrl.startsWith('http')) {
+        return 'https://placehold.co/50?text=Error';
+    }
+
+    return cleanUrl;
+}
+// ------------------------------------
+
 async function getAllProducts() {
     try {
         const response = await fetch('https://api.escuelajs.co/api/v1/products');
         const data = await response.json();
         
-        // Lưu dữ liệu
         originalData = data;
-        filteredData = [...originalData]; // Copy dữ liệu để thao tác
+        filteredData = [...originalData];
 
-        renderTable();
+        renderTable(); // Hoặc renderGrid() nếu bạn đang dùng Grid
         renderPagination();
     } catch (error) {
         console.error('Lỗi khi lấy dữ liệu:', error);
@@ -26,36 +55,39 @@ async function getAllProducts() {
     }
 }
 
-// 2. Hàm render bảng dữ liệu
 function renderTable() {
     const tableBody = document.getElementById('tableBody');
+    if (!tableBody) return; 
+    
     tableBody.innerHTML = '';
 
-    // Tính toán phân trang (Slice dữ liệu)
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const displayData = filteredData.slice(startIndex, endIndex);
 
     if (displayData.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Không tìm thấy sản phẩm</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Không tìm thấy sản phẩm</td></tr>'; // Lưu ý colspan="5" vì thêm 1 cột
         return;
     }
 
     displayData.forEach(product => {
-        // Xử lý hiển thị toàn bộ hình ảnh
+        // Xử lý hình ảnh (Giữ nguyên logic cũ của bạn)
         let imagesHtml = '';
-        if (product.images && Array.isArray(product.images)) {
-            // Lọc và làm sạch URL ảnh (API này đôi khi trả về chuỗi JSON lỗi trong mảng)
-            imagesHtml = product.images.map(img => {
-                let cleanUrl = img.replace(/[\[\]"]/g, ''); // Fix lỗi format của API EscuelaJS đôi khi gặp
-                return `<img src="${cleanUrl}" class="product-img" alt="${product.title}" onerror="this.src='https://placehold.co/50'">`;
-            }).join('');
+        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+            let cleanUrl = getCleanImageUrl(product.images[0]);
+            imagesHtml = `<img src="${cleanUrl}" class="product-img" alt="${product.title}" 
+                          onerror="this.src='https://placehold.co/50?text=404'">`;
+        } else {
+            imagesHtml = `<img src="https://placehold.co/50?text=No+Image" class="product-img">`;
         }
 
+        // --- CẬP NHẬT DÒNG HTML DƯỚI ĐÂY ---
+        // Thêm class 'truncate-text' vào mô tả để nó không làm bảng quá dài
         const row = `
             <tr>
                 <td>${product.id}</td>
-                <td>${product.title}</td>
+                <td><b>${product.title}</b></td>
+                <td><div class="truncate-text" title="${product.description}">${product.description}</div></td>
                 <td>$${product.price}</td>
                 <td>${imagesHtml}</td>
             </tr>
@@ -64,14 +96,12 @@ function renderTable() {
     });
 }
 
-// 3. Hàm render phân trang
 function renderPagination() {
     const paginationDiv = document.getElementById('pagination');
     paginationDiv.innerHTML = '';
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-    // Nút Previous
     const prevBtn = document.createElement('button');
     prevBtn.innerText = 'Trước';
     prevBtn.disabled = currentPage === 1;
@@ -84,16 +114,14 @@ function renderPagination() {
     };
     paginationDiv.appendChild(prevBtn);
 
-    // Hiển thị số trang (rút gọn nếu cần, ở đây làm đơn giản)
     const pageInfo = document.createElement('span');
     pageInfo.style.padding = "8px";
     pageInfo.innerText = `Trang ${currentPage} / ${totalPages}`;
     paginationDiv.appendChild(pageInfo);
 
-    // Nút Next
     const nextBtn = document.createElement('button');
     nextBtn.innerText = 'Sau';
-    nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+    nextBtn.disabled = currentPage >= totalPages;
     nextBtn.onclick = () => {
         if (currentPage < totalPages) {
             currentPage++;
@@ -104,34 +132,33 @@ function renderPagination() {
     paginationDiv.appendChild(nextBtn);
 }
 
-// 4. Tìm kiếm theo Title (onChange / onInput)
+// Xử lý tìm kiếm
 const searchInput = document.getElementById('searchInput');
-searchInput.addEventListener('input', function(e) {
-    const keyword = e.target.value.toLowerCase();
-    
-    // Lọc dữ liệu từ bản gốc
-    filteredData = originalData.filter(product => 
-        product.title.toLowerCase().includes(keyword)
-    );
+if(searchInput) {
+    searchInput.addEventListener('input', function(e) {
+        const keyword = e.target.value.toLowerCase();
+        filteredData = originalData.filter(product => 
+            product.title.toLowerCase().includes(keyword)
+        );
+        currentPage = 1;
+        renderTable();
+        renderPagination();
+    });
+}
 
-    // Reset về trang 1 sau khi tìm kiếm
-    currentPage = 1;
-    renderTable();
-    renderPagination();
-});
-
-// 5. Thay đổi số lượng hiển thị (5, 10, 20)
+// Xử lý thay đổi số lượng dòng
 const pageSizeSelect = document.getElementById('pageSizeSelect');
-pageSizeSelect.addEventListener('change', function(e) {
-    itemsPerPage = parseInt(e.target.value);
-    currentPage = 1;
-    renderTable();
-    renderPagination();
-});
+if(pageSizeSelect) {
+    pageSizeSelect.addEventListener('change', function(e) {
+        itemsPerPage = parseInt(e.target.value);
+        currentPage = 1;
+        renderTable();
+        renderPagination();
+    });
+}
 
-// 6. Sắp xếp (Sort) tăng/giảm theo Giá và Tên
+// Xử lý sắp xếp
 function handleSort(column) {
-    // Đảo ngược trạng thái sắp xếp
     sortDirection[column] = sortDirection[column] === 'asc' ? 'desc' : 'asc';
     const direction = sortDirection[column];
 
@@ -139,7 +166,6 @@ function handleSort(column) {
         let valA = a[column];
         let valB = b[column];
 
-        // Nếu là tên thì chuyển về chữ thường để so sánh
         if (column === 'title') {
             valA = valA.toLowerCase();
             valB = valB.toLowerCase();
@@ -153,5 +179,5 @@ function handleSort(column) {
     renderTable();
 }
 
-// Khởi chạy ứng dụng
+// Khởi chạy
 getAllProducts();
