@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sản phẩm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        /* Khu vực điều khiển (Search, Sort, Pagination Size) */
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"], select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 8px 12px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* CSS cho Bảng */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Yêu cầu: 1 dòng đen, 1 dòng trắng */
+        /* Dòng lẻ: Màu trắng, chữ đen */
+        tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        /* Dòng chẵn: Màu đen, chữ trắng */
+        tbody tr:nth-child(even) {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        /* Style cho hình ảnh */
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* Phân trang */
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .pagination button.active {
+            background-color: #0056b3;
+            font-weight: bold;
+        }
+
+        .sort-icon::after {
+            content: ' ↕';
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Danh sách sản phẩm</h1>
+
+    <div class="controls">
+        <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên sản phẩm..." />
+
+        <label>Hiển thị: 
+            <select id="pageSizeSelect">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+            </select>
+        </label>
+        
+        <div style="margin-left: auto;">
+            <button onclick="handleSort('price')">Sắp xếp Giá</button>
+            <button onclick="handleSort('title')">Sắp xếp Tên</button>
+        </div>
+    </div>
+
+    <table id="productTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th onclick="handleSort('title')" class="sort-icon">Tên sản phẩm</th>
+                <th onclick="handleSort('price')" class="sort-icon">Giá ($)</th>
+                <th>Hình ảnh</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            </tbody>
+    </table>
+
+    <div class="pagination" id="pagination">
+        </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
